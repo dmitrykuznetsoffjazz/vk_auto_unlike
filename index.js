@@ -31,10 +31,16 @@ preventSleep();
             process.exit(1);
         }
 
+        const userDataDir = path.join(__dirname, 'chrome-profile');
         const browser = await puppeteer.launch({
             headless: false,
             executablePath: chromePath,
-            args: ['--window-position=0,0', '--window-size=1280,800', '--disable-features=TranslateUI'],
+            args: [
+                `--user-data-dir=${userDataDir}`,
+                '--window-position=0,0',
+                '--window-size=1280,800',
+                '--disable-features=TranslateUI'
+            ],
             defaultViewport: null
         });
 
