@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Chrome for Testing
+chrome-mac-*/
+chrome-win*/
+chrome-linux*/
+chrome-for-testing-*.zip
+
+# User data and settings
+settings.json
+totalLikes.json
+package-lock.json
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+.cache/
+.gigacode/
