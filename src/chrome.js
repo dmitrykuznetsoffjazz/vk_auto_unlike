@@ -120,7 +120,11 @@ async function downloadChromeForTesting() {
         for (const dir of chromeDirs) {
             try {
                 const dirPath = path.join(projectRoot, dir);
-                execSync(`rm -rf "${dirPath}"`, { stdio: 'ignore' });
+                if (process.platform === 'win32') {
+                    execSync(`powershell -Command "Remove-Item -Recurse -Force '${dirPath}'"`, { stdio: 'ignore' });
+                } else {
+                    execSync(`rm -rf "${dirPath}"`, { stdio: 'ignore' });
+                }
                 console.log(`[OK] Удалена папка: ${dir}`);
             } catch (e) {
                 console.warn(`[WARN] Не удалось удалить ${dir}: ${e.message}`);
@@ -368,21 +372,33 @@ async function getLatestChromeVersion() {
         throw new Error('Неподдерживаемая ОС');
     }
 
-    const apiUrl = 'https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json';
-    const response = await fetch(apiUrl);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const data = await response.json();
-    const stableInfo = data.channels.Stable;
-    if (!stableInfo) throw new Error('Stable channel not found');
-
-    const chromeEntry = stableInfo.downloads.chrome.find(d => d.platform === platformKey);
-    if (!chromeEntry) throw new Error(`No download for platform ${platformKey}`);
-
-    return {
-        version: stableInfo.version,
-        downloadUrl: chromeEntry.url,
-        platformKey: platformKey
-    };
+    return new Promise((resolve, reject) => {
+        const apiUrl = 'https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json';
+        https.get(apiUrl, (res) => {
+            if (res.statusCode !== 200) {
+                reject(new Error(`HTTP ${res.statusCode}`));
+                return;
+            }
+            let body = '';
+            res.on('data', chunk => body += chunk);
+            res.on('end', () => {
+                try {
+                    const data = JSON.parse(body);
+                    const stableInfo = data.channels.Stable;
+                    if (!stableInfo) throw new Error('Stable channel not found');
+                    const chromeEntry = stableInfo.downloads.chrome.find(d => d.platform === platformKey);
+                    if (!chromeEntry) throw new Error(`No download for platform ${platformKey}`);
+                    resolve({
+                        version: stableInfo.version,
+                        downloadUrl: chromeEntry.url,
+                        platformKey: platformKey
+                    });
+                } catch (e) {
+                    reject(e);
+                }
+            });
+        }).on('error', reject);
+    });
 }
 
 module.exports = {

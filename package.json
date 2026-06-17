@@ -1,6 +1,6 @@
 {
   "name": "vk-unlike",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Автоматическое снятие реакций ВКонтакте с панелью управления",
   "main": "index.js",
   "scripts": {
